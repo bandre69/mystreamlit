@@ -1,0 +1,2 @@
+cd C:\Users\antho\Desktop\Projet feu de foret
+streamlit run streamlit.py

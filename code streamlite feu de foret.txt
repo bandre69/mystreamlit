@@ -1,0 +1,219 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn import ensemble
+from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import RandomOverSampler
+
+df=pd.read_csv("complete.csv")
+
+st.image("image feu.png")
+st.title("Projet de classification des feux de forêt aux USA")
+st.sidebar.title("Menu")
+pages=["Exploration", "DataVizualization", "Modélisation"]
+page=st.sidebar.radio("Aller vers:", pages)
+
+#Première page introduction des données
+if page == pages[0] :
+  st.header("Introduction",divider=True)
+
+st.subheader("Dataframe des feux de foret aux USA de 1992 à 2015")
+st.write("Dataframe contenant le merge de 2 dataframes des feux de foret et des températures moyennes par états:")
+
+st.dataframe(df.head(10))
+st.write(df.shape)
+st.dataframe(df.describe())
+
+#Deuxième page datavisualization
+if page == pages[1]:
+    st.header("DataVizualization", divider=True)
+    st.write("Ci-dessous les différentes datavisualisation des feux de forêt afin de pouvoir identifier les paramètres qui permettront de définir notre modèle prédictif:")
+
+    # Options disponibles pour les graphiques
+    viz_options = [
+        "Nombre de feux par année et par classe",
+        "Nombre de feux par cause et par classe",
+        "Nombre de feux par mois et par classe",
+        "Cartographie des classes de feu aux USA",
+        "Zoom sur les classes de feu en Californie"
+    ]
+
+    # Multiselect pour permettre une sélection dynamique
+    selected_viz = st.multiselect("Sélectionnez les graphiques à afficher :", options=viz_options)
+
+    # Affichage conditionnel des graphiques
+    if "Nombre de feux par année et par classe" in selected_viz:
+        st.subheader("Nombre de feux par année et par classe:")
+        fig = plt.figure(figsize=(15, 6))
+        sns.countplot(x='FIRE_YEAR', hue='FIRE_SIZE_CLASS', data=df)
+        st.pyplot(fig)
+
+    if "Nombre de feux par cause et par classe" in selected_viz:
+        st.subheader("Nombre de feux par cause et par classe:")
+        fig = plt.figure(figsize=(15, 6))
+        sns.countplot(x='STAT_CAUSE_DESCR', hue='FIRE_SIZE_CLASS', data=df)
+        st.pyplot(fig)
+
+    if "Nombre de feux par mois et par classe" in selected_viz:
+        st.subheader("Nombre de feux par mois et par classe:")
+        fig = plt.figure(figsize=(12, 6))
+        sns.countplot(x='CONT_MONTH', hue='FIRE_SIZE_CLASS', data=df)
+        st.pyplot(fig)
+
+    if "Cartographie des classes de feu aux USA" in selected_viz:
+        st.subheader("Cartographie des classes de feu aux USA:")
+        st.image("Categorie feu aux USA.png")
+
+    if "Zoom sur les classes de feu en Californie" in selected_viz:
+        st.subheader("Zoom sur les classes de feu en Californie:")
+        st.image("Feux Californie.png")
+
+
+st.subheader("Nombre de feux par année et par classe:")
+fig = plt.figure()
+fig = plt.figure(figsize=(15, 6))
+sns.countplot(x ='FIRE_YEAR', hue = 'FIRE_SIZE_CLASS', data = df)
+st.pyplot(fig)
+
+st.subheader("Nombre de feux par cause et par classe:")
+fig = plt.figure()
+fig = plt.figure(figsize=(15, 6))
+sns.countplot(x ='STAT_CAUSE_DESCR', hue = 'FIRE_SIZE_CLASS', data = df)
+st.pyplot(fig)
+
+st.subheader("Nombre de feux par mois et par classe:")
+fig = plt.figure()
+fig = plt.figure(figsize=(12, 6))
+sns.countplot(x ='CONT_MONTH', hue = 'FIRE_SIZE_CLASS', data = df)
+st.pyplot(fig)
+
+st.subheader("Cartographie des classes de feu aux USA:")
+st.image("Categorie feu aux USA.png")
+
+st.subheader("Zoom sur les classes de feu en Californie:")
+st.image("Feux Californie.png")
+
+if page == pages[2] :
+  st.write("### Modélisation")
+
+st.header("Modelisation",divider=True)
+
+Weather_fires = df[['FIRE_YEAR','DISCOVERY_DAY','DISCOVERY_MONTH','DISCOVERY_YEAR','CONT_DAY','CONT_MONTH','CONT_YEAR','STAT_CAUSE_DESCR','FIRE_SIZE','FIRE_SIZE_CLASS','LATITUDE','LONGITUDE','STATE','average_temp','monthly_mean_from_1901_to_2000']]
+Weather_fires = Weather_fires.sort_values(by=['FIRE_YEAR','DISCOVERY_MONTH'])
+
+# Define the periods for the cyclic variables
+period_day = 31
+period_month = 12
+
+# Apply cyclic encoding to DISCOVERY_DAY and CONT_DAY
+Weather_fires['DISCOVERY_DAY_sin'] = np.sin(2 * np.pi * Weather_fires['DISCOVERY_DAY'] / period_day)
+Weather_fires['DISCOVERY_DAY_cos'] = np.cos(2 * np.pi * Weather_fires['DISCOVERY_DAY'] / period_day)
+Weather_fires['CONT_DAY_sin'] = np.sin(2 * np.pi * Weather_fires['CONT_DAY'] / period_day)
+Weather_fires['CONT_DAY_cos'] = np.cos(2 * np.pi * Weather_fires['CONT_DAY'] / period_day)
+
+# Apply cyclic encoding to DISCOVERY_MONTH and CONT_MONTH
+Weather_fires['DISCOVERY_MONTH_sin'] = np.sin(2 * np.pi * Weather_fires['DISCOVERY_MONTH'] / period_month)
+Weather_fires['DISCOVERY_MONTH_cos'] = np.cos(2 * np.pi * Weather_fires['DISCOVERY_MONTH'] / period_month)
+Weather_fires['CONT_MONTH_sin'] = np.sin(2 * np.pi * Weather_fires['CONT_MONTH'] / period_month)
+Weather_fires['CONT_MONTH_cos'] = np.cos(2 * np.pi * Weather_fires['CONT_MONTH'] / period_month)
+
+# Assume a cyclical year period of 10 years for this example
+period_year = 10
+
+# Apply cyclic encoding to DISCOVERY_YEAR and CONT_YEAR
+Weather_fires['DISCOVERY_YEAR_sin'] = np.sin(2 * np.pi * (Weather_fires['DISCOVERY_YEAR'] % period_year) / period_year)
+Weather_fires['DISCOVERY_YEAR_cos'] = np.cos(2 * np.pi * (Weather_fires['DISCOVERY_YEAR'] % period_year) / period_year)
+Weather_fires['CONT_YEAR_sin'] = np.sin(2 * np.pi * (Weather_fires['CONT_YEAR'] % period_year) / period_year)
+Weather_fires['CONT_YEAR_cos'] = np.cos(2 * np.pi * (Weather_fires['CONT_YEAR'] % period_year) / period_year)
+
+Weather_fires= Weather_fires[['FIRE_SIZE_CLASS','LATITUDE','LONGITUDE','average_temp','monthly_mean_from_1901_to_2000','DISCOVERY_DAY_sin', 'DISCOVERY_DAY_cos', 'DISCOVERY_MONTH_sin', 'DISCOVERY_MONTH_cos',
+    'DISCOVERY_YEAR_sin', 'DISCOVERY_YEAR_cos', 'CONT_DAY_sin', 'CONT_DAY_cos',
+    'CONT_MONTH_sin', 'CONT_MONTH_cos', 'CONT_YEAR_sin', 'CONT_YEAR_cos']]
+
+st.markdown("Dataframe combinant les classes de feu et les températures par états contenant seulement les variables utilisées pour notre modèle prédictif de classe de feu en fonction de la localisation et des températures moyennes mensuelles:")
+st.dataframe(Weather_fires.head(10))
+
+#séparation des classes de feu
+Weather_fires['FIRE_SIZE_CLASS']= Weather_fires['FIRE_SIZE_CLASS'].replace(['A','B'],['A','A'])
+Weather_fires['FIRE_SIZE_CLASS']= Weather_fires['FIRE_SIZE_CLASS'].replace(['C','D'],['B','B'])
+Weather_fires['FIRE_SIZE_CLASS']= Weather_fires['FIRE_SIZE_CLASS'].replace(['E'],['C'])
+Weather_fires['FIRE_SIZE_CLASS']= Weather_fires['FIRE_SIZE_CLASS'].replace(['F','G'],['D','D'])
+
+#Séparation du jeu de données
+#Séparer les données en un DataFrame feats contenant les variables explicatives et un DataFrame target contenant la variable cible classe des feux
+feats = Weather_fires.drop('FIRE_SIZE_CLASS', axis=1)
+target = Weather_fires['FIRE_SIZE_CLASS']
+
+#Séparer le jeu de données en un jeu d'entraînement (X_train,y_train) et un jeu de test (X_test, y_test) de sorte que la partie de test contient 25% du jeu de données initial.
+X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.25, random_state = 42, shuffle = False)
+
+#Encodage les modalités de la variable cible FIRE_SIZE_CLASS à l'aide d'un LabelEncoder en estimant l'encodage sur le jeu d'entraînement et en l'appliquant sur le jeu d'entraînement et de test
+from sklearn.preprocessing import LabelEncoder
+
+le = LabelEncoder()
+
+y_train = le.fit_transform(y_train)
+
+y_test = le.transform(y_test)
+
+#Import des librairies pour l'utilisation du XGBClassifier et du random forest
+from sklearn import ensemble
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import RandomOverSampler
+from sklearn.metrics import confusion_matrix
+
+#Fonction permettant de choisir le modèle
+def prediction(classifier):
+    if classifier == 'Random Forest':
+        clf = RandomForestClassifier()
+    elif classifier == 'XGBClassifier':
+        clf = XGBClassifier()
+    clf.fit(X_train, y_train)
+    return clf
+
+#Fonction permettant de choisir la restitution des résultats pour chacun des modèles utilisés
+def scores(clf, choice):
+    if choice == 'Accuracy':
+        return clf.score(X_test, y_test)
+    elif choice == 'Confusion matrix':
+        return confusion_matrix(y_test, clf.predict(X_test))
+    
+
+#Selection du modèle
+choix = ['Random Forest', 'GBClassifier']
+option = st.selectbox('Choix du modèle', choix)
+st.write('Le modèle choisi est :', option)
+
+#Choix accuracy ou matrice de confusion
+clf = prediction(option)
+display = st.radio('Que souhaitez-vous montrer ?', ('Accuracy', 'Confusion matrix'))
+if display == 'Accuracy':
+    st.write(scores(clf, display))
+elif display == 'Confusion matrix':
+    st.dataframe(scores(clf, display))
+
+
+#Execution du randomforest
+ros = RandomOverSampler(random_state=42)
+X_res, y_res = ros.fit_resample(X_train, y_train)
+
+clf = ensemble.RandomForestClassifier(n_jobs=-1, random_state=321)
+
+clf.fit(X_res, y_res)
+
+y_pred = clf.predict(X_test)
+pd.crosstab(y_test, y_pred, rownames=['Classe réelle'], colnames=['Classe prédite'])
+
+#Execution du XGBClassifier
+bst = XGBClassifier(n_estimators=50, max_depth=50)
+# fit model
+bst.fit(X_res, y_res)
+# make predictions
+y_pred = bst.predict(X_test)
+
+pd.crosstab(y_test, y_pred, rownames=['Classe réelle'], colnames=['Classe prédite'])
