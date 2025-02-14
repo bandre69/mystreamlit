@@ -91,7 +91,7 @@ def page_2():
 
     if "Zoom sur les classes de feu en Californie" in selected_viz:
         st.subheader("Zoom sur les classes de feu en Californie:")
-        st.image("Feux Californie.PNG")
+        st.image("Feux Californie.png")
         st.write("Sur cette modélisation on peut constater que les feux qui font partie des classes les plus importantes sont surtout localisés au sud de la Californie.")
 
 # Fonction pour afficher la page 3
