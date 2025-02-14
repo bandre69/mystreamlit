@@ -10,6 +10,7 @@ from sklearn import ensemble
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import confusion_matrix
+from PIL import Image
 
 # Chargement des données
 @st.cache_data
@@ -26,7 +27,10 @@ menu = st.sidebar.radio(
 # Fonction pour afficher la page d'accueil
 def page_accueil():
     st.title("Projet de classification des feux de forêt aux USA")
-    st.image("image feu.png")
+    # Ouvrir l'image à partir du chemin spécifié
+    image = Image.open('image feu.png')
+    # Afficher l'image avec une légende dans Streamlit
+    st.image(image, caption='Mon image')
     st.subheader("Objectif de l'étude")
     st.write("Le National Wildfire Coordinating Group (NWCG) a été créé aux États-Unis à la suite des conséquences d'une importante saison d'incendies de forêt en 1970, notamment l' incendie de Laguna.")
     st.write("Ce groupe gère plusieurs publications contenant une base de données spatiales sur les incendies de forêt survenus aux États-Unis de 1992 à 2015.")
