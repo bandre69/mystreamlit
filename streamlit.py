@@ -28,7 +28,7 @@ menu = st.sidebar.radio(
 def page_accueil():
     st.title("Projet de classification des feux de forêt aux USA")
     # Ouvrir l'image à partir du chemin spécifié
-    image = Image.open('image feu.png')
+    image = Image.open('image feu.PNG')
     # Afficher l'image avec une légende dans Streamlit
     st.image(image, caption='Mon image')
     st.subheader("Objectif de l'étude")
