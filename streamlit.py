@@ -113,9 +113,7 @@ def page_3():
     st.write("- Les classes F et G dans la classe D")
     st.write("J'ai également une feature importance sur les 2 modèles afin d'identifier les 4 variables qui ont le plus d'impact sur la modélisation:")
     st.write("- Feature importance random forest")
-    st.image("feature importance random.png")
     st.write("- Feature importance XGClassifier")
-    st.image("feature importance XGClassifier.png")
 
     Weather_fires = df[['FIRE_YEAR','DISCOVERY_DAY','DISCOVERY_MONTH','DISCOVERY_YEAR','CONT_DAY','CONT_MONTH','CONT_YEAR','STAT_CAUSE_DESCR','FIRE_SIZE','FIRE_SIZE_CLASS','LATITUDE','LONGITUDE','STATE','average_temp','monthly_mean_from_1901_to_2000']]
     Weather_fires = Weather_fires.sort_values(by=['FIRE_YEAR','DISCOVERY_MONTH'])
